@@ -33,38 +33,34 @@ if choice == "Dashboard":
     st.title("Business Overview")
     st.markdown("Real-time performance metrics for Roxana AI Bot.")
     
-    # ۱. واکشی داده‌های محصولات و چت‌ها
-    res_p = supabase.table("products").select("name, brand, price_dhs").execute()
-    res_l = supabase.table("chat_logs").select("user_query").execute()
+    # ۱. واکشی داده‌ها
+    res_p = supabase.table("products").select("id, brand").execute()
+    # واکشی چت‌های ۲۴ ساعت گذشته (استفاده از فیلتر مستقیم در کوئری برای سرعت بیشتر)
+    from datetime import datetime, timedelta
+    time_threshold = (datetime.now() - timedelta(hours=24)).isoformat()
     
-    df = pd.DataFrame(res_p.data)
+    res_l = supabase.table("chat_logs").select("user_id").gt("created_at", time_threshold).execute()
+    
+    df_products = pd.DataFrame(res_p.data)
     df_logs = pd.DataFrame(res_l.data)
 
-    if not df.empty:
-        # --- محاسبات مربوط به Most Queried Product ---
+    if not df_products.empty:
+        # ۲. محاسبه کاربران فعال
         if not df_logs.empty:
-            # تبدیل تمام چت‌ها به یک متن واحد برای جستجو
-            all_queries = " ".join(df_logs['user_query'].fillna('').astype(str)).lower()
-            # شمارش تکرار نام هر محصول در چت‌ها
-            df['query_count'] = df['name'].apply(lambda x: all_queries.count(x.lower()))
-            # پیدا کردن محصولی که بیشترین تکرار را داشته
-            if df['query_count'].max() > 0:
-                top_product = df.loc[df['query_count'].idxmax(), 'name']
-            else:
-                top_product = "No Data"
+            active_users = df_logs['user_id'].nunique() # شمارش آی‌دی‌های غیر تکراری
         else:
-            top_product = "No Logs"
+            active_users = 0
 
-        # نمایش متریک‌ها در ۳ ستون
+        # ۳. نمایش متریک‌ها در ۳ ستون
         m1, m2, m3 = st.columns(3)
-        m1.metric("Total SKU", len(df))
-        m2.metric("Most Queried Product", top_product) # جایگزین In Stock شد
-        m3.metric("Premium Brands", len(df['brand'].unique()))
+        m1.metric("Total SKU", len(df_products))
+        m2.metric("Active Users (24h)", active_users) # جایگزین شد
+        m3.metric("Premium Brands", len(df_products['brand'].unique()))
 
-        st.subheader("Inventory Distribution")
-        st.table(df[['brand', 'name', 'price_dhs']].head(10))
+        st.subheader("Recent Inventory Preview")
+        st.table(df_products.head(5))
     else:
-        st.warning("No data found in the 'products' table.")
+        st.warning("No products found.")
 
 # --- 2. INVENTORY MANAGER SECTION ---
 elif choice == "Inventory Manager":
