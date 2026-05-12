@@ -53,7 +53,7 @@ if choice == "Dashboard":
         m1.metric("Total SKU", len(df_products))
         m2.metric("Active Users (24h)", active_users)
         m3.metric("Premium Brands", len(df_products['brand'].unique()))
-        m4.metric("Total Interactions", len(df_logs), help="تعداد کل پیام‌های رد و بدل شده در سیستم")
+        m4.metric("Total Interactions", len(df_logs)-1, help="تعداد کل پیام‌های رد و بدل شده در سیستم")
 
         st.divider()
         st.subheader("Inventory Summary")
