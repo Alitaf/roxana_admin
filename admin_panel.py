@@ -33,18 +33,35 @@ if choice == "Dashboard":
     st.title("Business Overview")
     st.markdown("Real-time performance metrics for Roxana AI Bot.")
     
-    # Fetch Data for Metrics
-    res = supabase.table("products").select("*").execute()
-    df = pd.DataFrame(res.data)
+    # ۱. واکشی داده‌های محصولات و چت‌ها
+    res_p = supabase.table("products").select("name, brand, price_dhs").execute()
+    res_l = supabase.table("chat_logs").select("user_query").execute()
+    
+    df = pd.DataFrame(res_p.data)
+    df_logs = pd.DataFrame(res_l.data)
 
     if not df.empty:
+        # --- محاسبات مربوط به Most Queried Product ---
+        if not df_logs.empty:
+            # تبدیل تمام چت‌ها به یک متن واحد برای جستجو
+            all_queries = " ".join(df_logs['user_query'].fillna('').astype(str)).lower()
+            # شمارش تکرار نام هر محصول در چت‌ها
+            df['query_count'] = df['name'].apply(lambda x: all_queries.count(x.lower()))
+            # پیدا کردن محصولی که بیشترین تکرار را داشته
+            if df['query_count'].max() > 0:
+                top_product = df.loc[df['query_count'].idxmax(), 'name']
+            else:
+                top_product = "No Data"
+        else:
+            top_product = "No Logs"
+
+        # نمایش متریک‌ها در ۳ ستون
         m1, m2, m3 = st.columns(3)
         m1.metric("Total SKU", len(df))
-        m2.metric("In Stock", len(df[df['is_available'] == True]))
+        m2.metric("Most Queried Product", top_product) # جایگزین In Stock شد
         m3.metric("Premium Brands", len(df['brand'].unique()))
 
         st.subheader("Inventory Distribution")
-        # Displaying a clean table
         st.table(df[['brand', 'name', 'price_dhs']].head(10))
     else:
         st.warning("No data found in the 'products' table.")
