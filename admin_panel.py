@@ -99,11 +99,25 @@ elif choice == "Customer Insights":
     
     if logs_res.data:
         logs_df = pd.DataFrame(logs_res.data)
-        # Rename columns for better display in the UI
-        logs_df.columns = ["ID", "Time", "Customer ID", "Customer Query", "Roxana Response"]
-        st.dataframe(logs_df[["Time", "Customer ID", "Customer Query", "Roxana Response"]], use_container_width=True)
+        
+        # تعریف یک نقشه برای تغییر نام ستون‌ها (فقط مواردی که وجود دارند)
+        column_mapping = {
+            "created_at": "Time",
+            "user_id": "Customer ID",
+            "username": "Username",
+            "user_query": "Customer Query",
+            "bot_response": "Roxana Response"
+        }
+        
+        # تغییر نام ستون‌ها بدون توجه به تعداد کل آن‌ها
+        display_df = logs_df.rename(columns=column_mapping)
+        
+        # نمایش ستون‌های موجود (اگر ستونی هنوز در دیتابیس نیست، خطایی نمی‌دهد)
+        available_cols = [c for c in ["Time", "Username", "Customer ID", "Customer Query", "Roxana Response"] if c in display_df.columns]
+        
+        st.dataframe(display_df[available_cols], use_container_width=True)
     else:
-        st.info("No chat logs found yet. Start talking to the bot!")
+        st.info("No chat logs found yet.")
 
 # --- 4. SYSTEM STATUS ---
 elif choice == "System Status":
