@@ -57,10 +57,14 @@ if choice == "Dashboard":
         st.divider()
         st.subheader("Inventory Summary")
         
-        # حالا چون در select بالا نام و قیمت را آوردیم، اینجا نمایش داده می‌شوند
-        st.dataframe(df_products[['brand', 'name', 'price_dhs']], use_container_width=True)
-    else:
-        st.warning("No products found.")
+        # ۱. کپی گرفتن از بخشی از دیتا برای نمایش
+        display_df = df_products[['brand', 'name', 'price_dhs']].copy()
+        
+        # ۲. تغییر شروع ایندکس از 0 به 1
+        display_df.index = display_df.index + 1
+        
+        # ۳. نمایش جدول با ایندکس اصلاح شده
+        st.dataframe(display_df, use_container_width=True)
 
 # --- 2. INVENTORY MANAGER SECTION ---
 elif choice == "Inventory Manager":
