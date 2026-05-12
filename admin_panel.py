@@ -55,10 +55,11 @@ if choice == "Dashboard":
         today_messages = len(df_logs[df_logs['created_at'] >= today_start])
 
         # ۳. نمایش متریک‌ها در ۳ ستون
-        m1, m2, m3 = st.columns(3)
+        m1, m2, m3,m4 = st.columns(4)
         m1.metric("Total SKU", len(df_products))
         m2.metric("Active Users (24h)", active_users)
-        m3.metric("Today's Messages", today_messages, help="تعداد کل پیام‌های ارسال شده از ابتدای امروز تاکنون")
+        m3.metric("Premium Brands", len(df_products['brand'].unique()))
+        m4.metric("Today's Messages", today_messages, help="تعداد کل پیام‌های ارسال شده از ابتدای امروز تاکنون")
 
         # ۴. نمایش جدول با ایندکس اصلاح شده (از ۱)
         st.divider()
