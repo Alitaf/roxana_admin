@@ -103,7 +103,7 @@ elif choice == "Customer Insights":
         # تعریف یک نقشه برای تغییر نام ستون‌ها (فقط مواردی که وجود دارند)
         column_mapping = {
             "created_at": "Time",
-            "user_id": "Customer ID",
+            "user_id": "User ID",
             "username": "Username",
             "user_query": "Customer Query",
             "bot_response": "Roxana Response"
