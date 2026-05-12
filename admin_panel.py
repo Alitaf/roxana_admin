@@ -113,7 +113,7 @@ elif choice == "Customer Insights":
         display_df = logs_df.rename(columns=column_mapping)
         
         # نمایش ستون‌های موجود (اگر ستونی هنوز در دیتابیس نیست، خطایی نمی‌دهد)
-        available_cols = [c for c in ["Time", "Username", "User ID", "Customer Query", "Roxana Response"] if c in display_df.columns]
+        available_cols = [c for c in ["Time", "User ID","Username", "Customer Query", "Roxana Response"] if c in display_df.columns]
         
         st.dataframe(display_df[available_cols], use_container_width=True)
     else:
