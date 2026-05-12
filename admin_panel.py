@@ -33,7 +33,7 @@ if choice == "Dashboard":
     st.title("Business Overview")
     st.markdown("Real-time performance metrics for Roxana AI Bot.")
     
-    # اصلاح کوئری برای فراخوانی تمام ستون‌های مورد نیاز جدول
+    # ۱. واکشی داده‌ها
     res_p = supabase.table("products").select("id, name, brand, price_dhs").execute()
     res_l = supabase.table("chat_logs").select("user_id, bot_response, created_at").execute()
     
@@ -41,22 +41,32 @@ if choice == "Dashboard":
     df_logs = pd.DataFrame(res_l.data)
 
     if not df_products.empty:
-        # محاسبات مربوط به Active Users و غیره (همان کدهای قبلی)
-        from datetime import datetime, timedelta
-        time_threshold = datetime.now() - timedelta(hours=24)
+        # ۲. تنظیمات زمان برای محاسبات
         df_logs['created_at'] = pd.to_datetime(df_logs['created_at']).dt.tz_localize(None)
+        now = datetime.now()
         
-        active_users = df_logs[df_logs['created_at'] > time_threshold]['user_id'].nunique()
+        # الف) محاسبات ۲۴ ساعت گذشته برای کاربران فعال
+        time_24h = now - timedelta(hours=24)
+        active_users = df_logs[df_logs['created_at'] > time_24h]['user_id'].nunique()
+        
+        # ب) محاسبات پیام‌های امروز (از ساعت 00:00 بامداد)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_messages = len(df_logs[df_logs['created_at'] >= today_start])
 
-        # نمایش متریک‌ها
-        m1, m2, m3, m4 = st.columns(4)
+        # ۳. نمایش متریک‌ها در ۳ ستون
+        m1, m2, m3 = st.columns(3)
         m1.metric("Total SKU", len(df_products))
         m2.metric("Active Users (24h)", active_users)
-        m3.metric("Premium Brands", len(df_products['brand'].unique()))
-        m4.metric("Total Interactions", len(df_logs)-1, help="تعداد کل پیام‌های رد و بدل شده در سیستم")
+        m3.metric("Today's Messages", today_messages, help="تعداد کل پیام‌های ارسال شده از ابتدای امروز تاکنون")
 
+        # ۴. نمایش جدول با ایندکس اصلاح شده (از ۱)
         st.divider()
         st.subheader("Inventory Summary")
+        display_df = df_products[['brand', 'name', 'price_dhs']].copy()
+        display_df.index = display_df.index + 1
+        st.dataframe(display_df, use_container_width=True)
+    else:
+        st.warning("No products found.")
         
         # ۱. کپی گرفتن از بخشی از دیتا برای نمایش
         display_df = df_products[['brand', 'name', 'price_dhs']].copy()
