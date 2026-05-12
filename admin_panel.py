@@ -89,17 +89,21 @@ elif choice == "Inventory Manager":
                     supabase.table("products").delete().eq("id", p['id']).execute()
                     st.rerun()
 
-# --- 3. CUSTOMER INSIGHTS (DEMO MODE) ---
+# --- 3. CUSTOMER INSIGHTS SECTION ---
 elif choice == "Customer Insights":
     st.title("Customer Insights & Logs")
-    st.info("Demo Data: Tracking how users interact with Roxana AI.")
+    st.markdown("Real-time monitoring of customer interactions.")
     
-    # Sample logs to look good for the demo
-    mock_logs = [
-        {"Time": "2024-05-10 14:20", "User": "@client_dubai", "Query": "Something for dry hair?", "Response": "Recommended Alchemy Oil"},
-        {"Time": "2024-05-10 15:05", "User": "@beauty_user", "Query": "Price of Helen Seward?", "Response": "Displayed 150 Dhs"},
-    ]
-    st.table(mock_logs)
+    # Fetch logs from Supabase
+    logs_res = supabase.table("chat_logs").select("*").order("created_at", desc=True).limit(50).execute()
+    
+    if logs_res.data:
+        logs_df = pd.DataFrame(logs_res.data)
+        # Rename columns for better display in the UI
+        logs_df.columns = ["ID", "Time", "Customer ID", "Customer Query", "Roxana Response"]
+        st.dataframe(logs_df[["Time", "Customer ID", "Customer Query", "Roxana Response"]], use_container_width=True)
+    else:
+        st.info("No chat logs found yet. Start talking to the bot!")
 
 # --- 4. SYSTEM STATUS ---
 elif choice == "System Status":
