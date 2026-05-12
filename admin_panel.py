@@ -33,32 +33,32 @@ if choice == "Dashboard":
     st.title("Business Overview")
     st.markdown("Real-time performance metrics for Roxana AI Bot.")
     
-    # ۱. واکشی داده‌ها
-    res_p = supabase.table("products").select("id, brand").execute()
-    # واکشی چت‌های ۲۴ ساعت گذشته (استفاده از فیلتر مستقیم در کوئری برای سرعت بیشتر)
-    from datetime import datetime, timedelta
-    time_threshold = (datetime.now() - timedelta(hours=24)).isoformat()
-    
-    res_l = supabase.table("chat_logs").select("user_id").gt("created_at", time_threshold).execute()
+    # اصلاح کوئری برای فراخوانی تمام ستون‌های مورد نیاز جدول
+    res_p = supabase.table("products").select("id, name, brand, price_dhs").execute()
+    res_l = supabase.table("chat_logs").select("user_id, bot_response, created_at").execute()
     
     df_products = pd.DataFrame(res_p.data)
     df_logs = pd.DataFrame(res_l.data)
 
     if not df_products.empty:
-        # ۲. محاسبه کاربران فعال
-        if not df_logs.empty:
-            active_users = df_logs['user_id'].nunique() # شمارش آی‌دی‌های غیر تکراری
-        else:
-            active_users = 0
+        # محاسبات مربوط به Active Users و غیره (همان کدهای قبلی)
+        from datetime import datetime, timedelta
+        time_threshold = datetime.now() - timedelta(hours=24)
+        df_logs['created_at'] = pd.to_datetime(df_logs['created_at']).dt.tz_localize(None)
+        
+        active_users = df_logs[df_logs['created_at'] > time_threshold]['user_id'].nunique()
 
-        # ۳. نمایش متریک‌ها در ۳ ستون
+        # نمایش متریک‌ها
         m1, m2, m3 = st.columns(3)
         m1.metric("Total SKU", len(df_products))
-        m2.metric("Active Users (24h)", active_users) # جایگزین شد
+        m2.metric("Active Users (24h)", active_users)
         m3.metric("Premium Brands", len(df_products['brand'].unique()))
 
-        st.subheader("Recent Inventory Preview")
-        st.table(df_products.head(5))
+        st.divider()
+        st.subheader("Inventory Summary")
+        
+        # حالا چون در select بالا نام و قیمت را آوردیم، اینجا نمایش داده می‌شوند
+        st.dataframe(df_products[['brand', 'name', 'price_dhs']], use_container_width=True)
     else:
         st.warning("No products found.")
 
