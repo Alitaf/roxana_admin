@@ -49,10 +49,11 @@ if choice == "Dashboard":
         active_users = df_logs[df_logs['created_at'] > time_threshold]['user_id'].nunique()
 
         # نمایش متریک‌ها
-        m1, m2, m3 = st.columns(3)
+        m1, m2, m3, m4 = st.columns(4)
         m1.metric("Total SKU", len(df_products))
         m2.metric("Active Users (24h)", active_users)
         m3.metric("Premium Brands", len(df_products['brand'].unique()))
+        m4.metric("Total Interactions", len(df_logs), help="تعداد کل پیام‌های رد و بدل شده در سیستم")
 
         st.divider()
         st.subheader("Inventory Summary")
